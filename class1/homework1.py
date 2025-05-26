@@ -14,6 +14,9 @@
 辞書も全ての単語について昇順にソート=>O(m)
 そして線形探索をして一致するか全ての場合の一致を確認する（二分探索をすれば一つ見つけられても複数見つけられないと考えたため）=>O(m)
 つまり計算量は0(1)+O(m)+O(m) => O(m)
+
+3  二分探索でヒットした部分を全て書き出せばいいことに気がついたので二分探索を採用
+計算量はO(1)+O(m)+O(logm)
 """
 
 def sort_str(str):
@@ -24,6 +27,24 @@ def sort_str(str):
     print(resstr)
 
     return resstr
+
+def binary_search(keyword,dictionary):
+    ans = []
+
+    left = 0
+    right = len(dictionary)-1
+
+    while right <= left:
+
+        pos = (right - left)//2+(right - left)%2
+        for key,val in dictionary[pos]:
+            if keyword <= key:
+                right = pos+1
+            else:
+                left = pos 
+    
+
+    return ans
 
 
 
@@ -40,15 +61,16 @@ def better_solution(random_word,dictionary):
     
     # print(len(newdictionary))
 
+    # 線形探索の場合
     answer = []
     for i in newdictionary:
-        # print(i.keys())
-        # print(sorted_word)
-
         # このdictの使い方覚える！！！！
         for key,val in i.items():
             if key == sorted_word:
                 answer.append(val)
+
+    # 二分探索の場合
+    answer = binary_search(sorted_word,newdictionary)
             
 
     return answer
