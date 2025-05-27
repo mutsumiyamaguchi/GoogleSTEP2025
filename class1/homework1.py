@@ -57,6 +57,9 @@ def binary_search(target,dictionary):
 
 def underbinary_search(target,dictionary):
 # 下限を求める二分探索
+# target<= keyの時はOK（大きいので）OKの時はrightをNGに近づけるためにpos-1
+# target > keyの時はNG(小さい)　NGの時はleftをOKに近づけるためにpos+1
+# こうすることで探索範囲もせばまる
     ans = []
 
     left = 0
@@ -67,16 +70,19 @@ def underbinary_search(target,dictionary):
         pos = (right + left)//2
         for key,val in dictionary[pos].items():
             if target <= key:
-                right = pos-1 #rightの探索範囲をこうしないと、leftとrightがすごく近しい数字になった時に探索範囲が無限に狭まらないことが発生する
+                right = pos-1 
             else:
-                left = pos+1 #leftの範囲をposのままにしていたが、そうすると上の場合と同様探索範囲が減らず、無限ループしてしまう可能性がある
-    
+                left = pos+1 
+
     # print("this is under index",left)
 
     return left
 
 def upperbinary_search(target,dictionary):
-    # 上限を求める二分探索 
+    # 上限を求める二分探索
+    #  target>= keyの時はOK（大きいので）OKの時はrightをNGに近づけるためにpos-1
+    # target < keyの時はNG(小さい)　NGの時はleftをOKに近づけるためにpos+1
+    # こうすることで探索範囲もせばまる 
     ans = []
 
     left = 0
@@ -87,9 +93,9 @@ def upperbinary_search(target,dictionary):
         pos = (right + left)//2
         for key,val in dictionary[pos].items():
             if target >= key:
-                left = pos+1 #rightの探索範囲をこうしないと、leftとrightがすごく近しい数字になった時に探索範囲が無限に狭まらないことが発生する
+                left = pos+1 
             else:
-                 right = pos-1#leftの範囲をposのままにしていたが、そうすると上の場合と同様探索範囲が減らず、無限ループしてしまう可能性がある
+                 right = pos-1
     
     # print("this is upper index",right)
     return right
