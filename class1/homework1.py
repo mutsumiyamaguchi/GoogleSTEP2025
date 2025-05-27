@@ -17,6 +17,10 @@
 
 3  一つの探索であれば二分探索で可能であると考えたので二分探索を採用
 計算量はO(1)+O(m)+O(logm)
+
+? 二分探索で複数の解答を見つけるには？
+A 下限インデックス探索および上限インデックス探索二分探索で行い、その幅にあるoriginalを返すようにする
+計算量はO(logm*2) = O(logm)ですむ
 """
 
 def sort_str(str):
@@ -24,11 +28,12 @@ def sort_str(str):
     lst = list(str)
     lst.sort()
     resstr = "".join(lst)
-    print(resstr)
+    # print(resstr)
 
     return resstr
 
-def binary_search(keyword,dictionary):
+def binary_search(target,dictionary):
+    
     ans = []
 
     left = 0
@@ -36,16 +41,58 @@ def binary_search(keyword,dictionary):
 
     while left <= right:
 
-        pos = (right - left)//2
+        pos = (right + left)//2
         for key,val in dictionary[pos].items():
-            if keyword < key:
+            if target < key:
                 right = pos-1 #rightの探索範囲をこうしないと、leftとrightがすごく近しい数字になった時に探索範囲が無限に狭まらないことが発生する
-            elif key < keyword:
+            elif key < target:
                 left = pos+1 #leftの範囲をposのままにしていたが、そうすると上の場合と同様探索範囲が減らず、無限ループしてしまう可能性がある
             else:
-                ans.append(val) 
+                ans.append(val)
+                left = pos + 1
+                right = pos - 1
+                # break これがなくても探索範囲が狭まっているので必ず止まる
     
     return ans
+
+def underbinary_search(target,dictionary):
+# 下限を求める二分探索
+    ans = []
+
+    left = 0
+    right = len(dictionary)-1
+
+    while left <= right:
+
+        pos = (right + left)//2
+        for key,val in dictionary[pos].items():
+            if target <= key:
+                right = pos-1 #rightの探索範囲をこうしないと、leftとrightがすごく近しい数字になった時に探索範囲が無限に狭まらないことが発生する
+            else:
+                left = pos+1 #leftの範囲をposのままにしていたが、そうすると上の場合と同様探索範囲が減らず、無限ループしてしまう可能性がある
+    
+    # print("this is under index",left)
+
+    return left
+
+def upperbinary_search(target,dictionary):
+    # 上限を求める二分探索 
+    ans = []
+
+    left = 0
+    right = len(dictionary)-1
+
+    while left <= right:
+
+        pos = (right + left)//2
+        for key,val in dictionary[pos].items():
+            if target >= key:
+                left = pos+1 #rightの探索範囲をこうしないと、leftとrightがすごく近しい数字になった時に探索範囲が無限に狭まらないことが発生する
+            else:
+                 right = pos-1#leftの範囲をposのままにしていたが、そうすると上の場合と同様探索範囲が減らず、無限ループしてしまう可能性がある
+    
+    # print("this is upper index",right)
+    return right
 
 
 
@@ -60,6 +107,9 @@ def better_solution(random_word,dictionary):
         newdata[dic_word_sorted] = i
         newdictionary.append(newdata)
     
+   
+    newdictionary = sorted(newdictionary, key=lambda d: list(d.keys())[0])#この使い方知らなかったので覚える
+    
     # print(len(newdictionary))
     """
     # 線形探索の場合
@@ -71,8 +121,18 @@ def better_solution(random_word,dictionary):
                 answer.append(val)
     """
     # 二分探索の場合
-    answer = binary_search(sorted_word,newdictionary)
-            
+    # answer = binary_search(sorted_word,newdictionary)
+
+    # 二分探索による上限、下限インデックス取得時
+    answer = []
+    under = underbinary_search(sorted_word,newdictionary)
+    upper = upperbinary_search(sorted_word,newdictionary)
+    # print("under???",under) 
+    # print("upper??",upper)
+
+    for i in range(under,upper+1):
+        for key,val in newdictionary[i].items():
+            answer.append(val)      
 
     return answer
 
@@ -102,6 +162,7 @@ if __name__ == "__main__":
 
 """
 テストケース(入力文字そのものはアナグラムなのか否か聞く)
+線形探索の場合
 1 cat =>this is anagram: act
         this is anagram: cat
 2 から文字 =>no anagram for this strings
@@ -113,4 +174,18 @@ this is anagram: plea
 
 4 a
 this is anagram: a
+
+テストケース 二分探索の場合
+1 cat =>this is anagram: act
+        this is anagram: cat
+2 から文字 =>no anagram for this strings
+3 pale
+this is anagram: leap
+this is anagram: pale
+this is anagram: peal
+this is anagram: plea
+
+4 a
+this is anagram: a
+
 """
