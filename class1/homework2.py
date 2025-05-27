@@ -8,6 +8,9 @@ O(m)+O(2^n)*O(logm)
 線形探索をして全ての文字列を取り出すようにする
 O(m) + O(1) +O(m)
 
+? 全ての文字列を取り出したとして、どれを採用するのかというのはどのように決めたらいいのかわからない
+? largeを実行した時にすごく時間がかかったので二分探索を採用するべきであると思う。そうするとどの単語か使われるのかというのが辞書の長さに関わってくると思うが、どうすればスコアが高くなるのかわからない
+
 プログラムを書いて見て思ったこととして、今回の内容であればソートの必要はなかったのかなと感じた
 """
 
@@ -65,7 +68,7 @@ def dictionary_sort(dictionary):
 
 def liner_search(target,dictionary):
     ans = []
-    print("this is liner_search",target)
+    # print("this is liner_search",target)
     
     # 辞書型の分解にfor文が必要
     for target_sorted,target_dic in target.items():
@@ -116,16 +119,17 @@ def main():
     newdictionary = dictionary_sort(dictionary)
 
     # target読み込み
-    f = open("./small.txt","r",encoding = "UTF-8")
+    f = open("./large.txt","r",encoding = "UTF-8")
     targetlst = f.read().splitlines()
     f.close
 
     for i in targetlst:
-        print("this is i",i)
+        # print("this is i",i)
         lst = best_solution(i,newdictionary)
-        print(lst)
+        # print(lst)
         
-        with open("small_ans.txt", mode='a', encoding='UTF-8') as f:
+        # mode = 'a'というのが追記モード
+        with open("large_ans.txt", mode='a', encoding='UTF-8') as f:
             f.write("[DEBUG]anagram for:"+i)
             for word in lst:
                 f.write(word+"\n")
