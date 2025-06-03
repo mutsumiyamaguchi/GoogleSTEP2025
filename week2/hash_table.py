@@ -55,6 +55,7 @@ class HashTable:
         self.buckets = [None] * self.bucket_size
         self.item_count = 0
 
+    
     # Put an item to the hash table. If the key already exists, the
     # corresponding value is updated to a new value.
     #
@@ -64,6 +65,12 @@ class HashTable:
     #               and the value is updated.
     def put(self, key, value):
         assert type(key) == str
+
+        if self.item_count < self.bucket_size*0.3:
+            self.update_hash_smaller()
+        if self.item_count > self.bucket_size*0.7:
+            self.update_hash_bigger()
+
         self.check_size() # Note: Don't remove this code.
         bucket_index = calculate_hash(key) % self.bucket_size
         item = self.buckets[bucket_index]
@@ -105,9 +112,10 @@ class HashTable:
         #------------------------#
         self.check_size() # Note: Don't remove this code.
         bucket_index = calculate_hash(key) % self.bucket_size
+
         previous_item = None #一つ前のアドレスを格納する変数
-        next_item = self.buckets[bucket_index]
-        flg = 0
+        next_item = self.buckets[bucket_index] #先頭アドレスを格納
+        flg = 0 #return したかどうか判定するための変数だが、returnした時点でそれ以外の部分は実行されないのでwhile文を抜けたらfalseを返すようにすることでこの変数を省略できると思った
         while next_item:
             if next_item.key == key:
                 if previous_item == None:
@@ -123,6 +131,37 @@ class HashTable:
             next_item = next_item.next
         if flg == 0:
             return False
+        
+    # rehash function
+    def rehash(self,newsize):
+        self.bucket_size = newsize
+        old_buckets = self.buckets
+        self.buckets = [None] * newsize
+        # pld_bucketsに格納されている全てのインデックスについて探索（ただし全ての要素の中身はlinked list）
+        for putitem in old_buckets:
+            # putitem自体がlinked listの先頭要素のはず
+            while putitem:
+                # putと同じ実装（ただし同じものは2度と出現しないのでその仮定は不要）
+
+                # 新しいインデックスを計算
+                bucket_index = calculate_hash(putitem.key) % self.bucket_size
+                # new_itemの三つ目の要素は現在のlinkedlistの戦闘要素、それをnextに格納することで連結させることができる
+                new_item = Item(putitem.key, putitem.value, self.buckets[bucket_index])
+                # 新たなlinked listを格納
+                self.buckets[bucket_index] = new_item
+                
+                #元のインデックスに格納されていた次の要素について探索する 
+                putitem = putitem.next
+        
+        
+
+
+    def update_hash_bigger(self):
+        self.rehash(self.bucket_size*2)
+    
+    def update_hash_smaller(self):
+        self.rehash(self.bucket_size//2)
+    
     
 
     # Return the total number of items in the hash table.
