@@ -3,9 +3,8 @@ import random, sys, time
 """
 質問
 hash値を素数にすれば衝突が減り、実行時間が短くなるということに関して理解することはできたけれど、どのようにしたら再ハッシュの際に奇数にすることができるのか
-ただ2倍、1/2倍にしていてはその性質から奇数である確率は下がって奇数である確率は下がってしまうとおもった
+ただ2倍、1/2倍にしていてはその性質から奇数である確率は下がってしまうと考えた
 素数のリストを用意しておき、そこから選ぶようにして実装すれば良いのか？
-
 
 """
 
@@ -123,9 +122,7 @@ class HashTable:
     #               otherwise.
     def delete(self, key):
         assert type(key) == str
-        #------------------------#
-        # Write your code here!  #
-        #------------------------#
+
         self.check_size() # Note: Don't remove this code.
         bucket_index = calculate_hash(key) % self.bucket_size
 
@@ -165,14 +162,13 @@ class HashTable:
                 # 新たなlinked listを格納
                 self.buckets[bucket_index] = new_item
                 #元のインデックスに格納されていた次の要素について探索する 
-                putitem = putitem.next
-        
-        
+                putitem = putitem.next   
 
-
+    # ハッシュテーブルを大きくする場合（2倍）
     def update_hash_bigger(self):
         self.rehash(self.bucket_size*2)
     
+    # ハッシュテーブルを小さくする場合（1/2倍）
     def update_hash_smaller(self):
         self.rehash(self.bucket_size//2)
     
