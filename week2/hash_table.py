@@ -1,5 +1,14 @@
 import random, sys, time
 
+"""
+質問
+hash値を素数にすれば衝突が減り、実行時間が短くなるということに関して理解することはできたけれど、どのようにしたら再ハッシュの際に奇数にすることができるのか
+ただ2倍、1/2倍にしていてはその性質から奇数である確率は下がって奇数である確率は下がってしまうとおもった
+素数のリストを用意しておき、そこから選ぶようにして実装すれば良いのか？
+
+
+"""
+
 ###########################################################################
 #                                                                         #
 # Implement a hash table from scratch! (⑅•ᴗ•⑅)                            #
@@ -20,8 +29,15 @@ def calculate_hash(key):
 
     # Note: This is not a good hash function. Do you see why?
     hash = 0
-    for i in key:
-        hash += ord(i)
+
+    # for i in key:
+    #     hash += ord(i)
+
+    # 桁によって10倍ずつしていくことでanagramのhash値の衝突を防ぐことができる
+    for index,i in enumerate(key):
+        hash+= ord(i)*10**index
+
+
     return hash
 
 
@@ -142,14 +158,12 @@ class HashTable:
             # putitem自体がlinked listの先頭要素のはず
             while putitem:
                 # putと同じ実装（ただし同じものは2度と出現しないのでその仮定は不要）
-
                 # 新しいインデックスを計算
                 bucket_index = calculate_hash(putitem.key) % self.bucket_size
-                # new_itemの三つ目の要素は現在のlinkedlistの戦闘要素、それをnextに格納することで連結させることができる
+                # new_itemの三つ目の要素は現在のlinkedlistの先頭要素、それをnextに格納することで連結させることができる
                 new_item = Item(putitem.key, putitem.value, self.buckets[bucket_index])
                 # 新たなlinked listを格納
                 self.buckets[bucket_index] = new_item
-                
                 #元のインデックスに格納されていた次の要素について探索する 
                 putitem = putitem.next
         
