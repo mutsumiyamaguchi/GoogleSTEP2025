@@ -11,6 +11,11 @@ import hash_table
 
 class Cacheitem:
 
+    # contents:web page contents
+    # url:web page url
+    # next: linked list next node
+    # prev: linked list previous node
+    
     def __init__(self,contents,url,next,prev):
         self.contents = contents
         self.url = url
