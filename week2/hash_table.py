@@ -4,7 +4,16 @@ import random, sys, time
 質問
 hash値を素数にすれば衝突が減り、実行時間が短くなるということに関して理解することはできたけれど、どのようにしたら再ハッシュの際に奇数にすることができるのか
 ただ2倍、1/2倍にしていてはその性質から奇数である確率は下がってしまうと考えた
-素数のリストを用意しておき、そこから選ぶようにして実装すれば良いのか？
+素数のリストを用意しておき、そこから選ぶようにして実装すれば良いのか=>OK
+
++1とかすることで奇数を実装(mod2を足したらいい)
+
+ordの数分だけバイすればハッシュ関数はよりかぶらなくなる(X個ならX倍するようにする、X進数と同じ理論)
+そうでないと今のままだと例えばa = 1 B = 10として aa = 11 Ba = 11となり、衝突する
+A= 65 z = 122
+つまり122-65+1 = 58種類存在している
+
+assertionErrorが出てきてしまうのを解決したい => 等号が抜けていたからかも
 
 """
 
@@ -32,9 +41,14 @@ def calculate_hash(key):
     # for i in key:
     #     hash += ord(i)
 
-    # 桁によって10倍ずつしていくことでanagramのhash値の衝突を防ぐことができる
+    # # 桁によって10倍ずつしていくことでanagramのhash値の衝突を防ぐことができる
+    # for index,i in enumerate(key):
+    #     hash+= ord(i)*10**index
+
+
+    # 10倍ではなく58種類存在しているため58倍するように変更する
     for index,i in enumerate(key):
-        hash+= ord(i)*10**index
+        hash+= ord(i)*58**index
 
 
     return hash
@@ -69,6 +83,9 @@ class HashTable:
         self.bucket_size = 97
         self.buckets = [None] * self.bucket_size
         self.item_count = 0
+        # ハッシュテーブルのサイズを素数にするために必要な変数
+        self.prime_list = [11,23,47,97,193,389,773,1579]
+        self.prime_index = 3
 
     
     # Put an item to the hash table. If the key already exists, the
@@ -81,10 +98,35 @@ class HashTable:
     def put(self, key, value):
         assert type(key) == str
 
-        if self.item_count < self.bucket_size*0.3:
-            self.update_hash_smaller()
-        if self.item_count > self.bucket_size*0.7:
-            self.update_hash_bigger()
+
+        # # ハッシュテーブルのサイズを2倍、1/2倍にする場合
+        # if self.item_count <= self.bucket_size*0.3:
+        #     self.update_hash_smaller()
+        # if self.item_count >= self.bucket_size*0.7:
+        #     self.update_hash_bigger()
+
+
+        # ハッシュテーブルのサイズを素数にしたい場合
+        # 素数のリストを用意しておき、そこから選ぶようにする。大きくなり過ぎた場合には2倍する関数を用いて対応するようにする
+        # prime_list:素数のリスト
+        # prime_index:現在のインデックスを格納しておくもの、初期は97なので3としている
+
+        # 素数リスト範囲内
+        if self.prime_index < 8 and self.prime_index > 0:
+            if self.item_count <= self.bucket_size*0.3:
+                self.prime_index -= 1
+                self.rehash(self.prime_list[self.prime_index])
+            elif self.item_count >= self.bucket_size*0.7:
+                self.prime_index += 1
+                self.rehash(self.prime_list[self.prime_index])
+        # 範囲外
+        else:
+            if self.item_count <= self.bucket_size*0.3:
+                self.update_hash_smaller()
+            elif self.item_count >= self.bucket_size*0.7:
+                self.update_hash_bigger()
+        
+        # print("[CHECK]this is after rehash",self.item_count,self.bucket_size)
 
         self.check_size() # Note: Don't remove this code.
         bucket_index = calculate_hash(key) % self.bucket_size
@@ -123,12 +165,33 @@ class HashTable:
     def delete(self, key):
         assert type(key) == str
 
+        # rehashする必要があるか確認
+        # 素数のリストを用意しておき、そこから選ぶようにする。大きくなり過ぎた場合には2倍する関数を用いて対応するようにする
+        # prime_list:素数のリスト
+        # prime_index:現在のインデックスを格納しておくもの、初期は97なので3としている
+
+        # 素数リスト範囲内
+        if self.prime_index < 8 and self.prime_index > 0:
+            if self.item_count <= self.bucket_size*0.3:
+                self.prime_index -= 1
+                self.rehash(self.prime_list[self.prime_index])
+            elif self.item_count >= self.bucket_size*0.7:
+                self.prime_index += 1
+                self.rehash(self.prime_list[self.prime_index])
+        # 範囲外
+        else:
+            if self.item_count <= self.bucket_size*0.3:
+                self.update_hash_smaller()
+            elif self.item_count >= self.bucket_size*0.7:
+                self.update_hash_bigger()
+
         self.check_size() # Note: Don't remove this code.
         bucket_index = calculate_hash(key) % self.bucket_size
 
         previous_item = None #一つ前のアドレスを格納する変数
         next_item = self.buckets[bucket_index] #先頭アドレスを格納
         flg = 0 #return したかどうか判定するための変数だが、returnした時点でそれ以外の部分は実行されないのでwhile文を抜けたらfalseを返すようにすることでこの変数を省略できると思った
+        
         while next_item:
             if next_item.key == key:
                 if previous_item == None:
@@ -146,6 +209,8 @@ class HashTable:
             return False
         
     # rehash function
+    # newsize => new bucket_size
+    # 新たに指定したサイズに再ハッシュする関数
     def rehash(self,newsize):
         self.bucket_size = newsize
         old_buckets = self.buckets
@@ -165,10 +230,12 @@ class HashTable:
                 putitem = putitem.next   
 
     # ハッシュテーブルを大きくする場合（2倍）
+    # 必ず奇数にするにはself.bucket_size*2+1
     def update_hash_bigger(self):
         self.rehash(self.bucket_size*2)
     
     # ハッシュテーブルを小さくする場合（1/2倍）
+    # 必ず奇数にするには(self.bucket_size//2)+(self.bucket_size%2+1)
     def update_hash_smaller(self):
         self.rehash(self.bucket_size//2)
     
