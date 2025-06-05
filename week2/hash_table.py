@@ -232,12 +232,12 @@ class HashTable:
     # ハッシュテーブルを大きくする場合（2倍）
     # 必ず奇数にするにはself.bucket_size*2+1
     def update_hash_bigger(self):
-        self.rehash(self.bucket_size*2)
+        self.rehash(self.bucket_size*2+1)
     
     # ハッシュテーブルを小さくする場合（1/2倍）
-    # 必ず奇数にするには(self.bucket_size//2)+(self.bucket_size%2+1)
+    # 必ず奇数にするにはself.bucket_size//2+((self.bucket_size//2)%2+1)
     def update_hash_smaller(self):
-        self.rehash(self.bucket_size//2)
+        self.rehash(self.bucket_size//2+((self.bucket_size//2)%2+1))
     
     
 
