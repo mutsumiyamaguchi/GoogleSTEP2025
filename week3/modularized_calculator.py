@@ -76,6 +76,7 @@ def caluculate_times_devisions(tokens):
 
                 # 二つ前のインデックスを削除、一つ前のインデックスを削除（ただしポップすることで配列の長さが変わるため調整する必要がありindex-2としている）
                 # 配列の長さが変わってしまうため、indexの調整を含める
+                # インデックス調整用のデバッグも含めたコード
 
                 poped1 = tokens.pop(index-2)
                 # print("poped1",poped1)
@@ -98,8 +99,10 @@ def caluculate_times_devisions(tokens):
                     
             # どちらでもなければ何もしなくて良い
             else:
-                print('this function is not times or devision')
-    
+                # デバッグ用
+                # print('this function is not times or devision')
+                pass
+            
         index += 1
     
     return tokens
@@ -128,13 +131,13 @@ def evaluate(tokens):
     tokens.insert(0, {'type': 'PLUS'}) # Insert a dummy '+' token
 
     # デバッグ
-    print("this is token test",tokens)
+    # print("this is token test",tokens)
 
     # tokensを渡したら掛け算割り算を行う
     tokens = caluculate_times_devisions(tokens)
     
     # デバッグ
-    print("this is token test after times and dexvison",tokens)
+    # print("this is token test after times and dexvison",tokens)
 
     # 足し算引き算を行う
     answer = caluculate_plus_minus(tokens)
@@ -157,6 +160,29 @@ def run_test():
     print("==== Test started! ====")
     test("1+2")
     test("1.0+2.1-3")
+    # for homework2
+    test("2")
+    test("3+4")
+    test("2.0+3")
+    test("2.3+4.0")
+    test("-3")
+    test("4-3")
+    test("3-4")
+    test("3.0-4")
+    test("4.0-3.0")
+    test("1+3+4-2")
+    test("-3+2-5")
+    test("-4.0+3.0-3")
+    test("2*3")
+    test("2.0*3.0")
+    test("2*3.0")
+    test("2.3*4.5")
+    test("5/2")
+    test("5.0/2")
+    test("5.0/2.0")
+    test("5.0/2.0/3")
+    test("5*4/2")
+    test("5.0*4.0*2.0/2.0/3")
     print("==== Test finished! ====\n")
 
 run_test()
