@@ -49,9 +49,6 @@ def tokenize(line):
     tokens = []
     index = 0
 
-    # opening_parentheses_count = 0 
-    # closing_parentheses_count = 0
-
     while index < len(line):
         if line[index].isdigit():
             (token, index) = read_number(line, index)
@@ -64,10 +61,8 @@ def tokenize(line):
         elif line[index] == '/':
             (token, index) = read_devision(line, index)
         elif line[index] == '(':
-            # opening_parentheses_count += 0 
             (token, index) = read_parentheses_opening(line, index)
         elif line[index] == ')':
-            # closing_parentheses_count = opening_parentheses_count
             (token, index) = read_parentheses_closing(line, index)
         else:
             print('Invalid character found: ' + line[index])
