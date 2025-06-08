@@ -63,7 +63,7 @@ def caluculate_times_devisions(tokens):
     
     while index < len(tokens):
         if tokens[index]['type'] == 'NUMBER':
-            
+
             # 掛け算の場合
             # 現在参照している数値の一つ前のインデックスが*なら
             # 二つ前のインデックスと現在参照しているインデックスを掛け算して、現在のインデックスを計算結果に更新
@@ -134,10 +134,11 @@ def evaluate(tokens):
     tokens = caluculate_times_devisions(tokens)
     
     # デバッグ
-    # indexを最後まで移動させてしまっているので、足し算引き算を実行するためにindex初期化
     print("this is token test after times and dexvison",tokens)
 
+    # 足し算引き算を行う
     answer = caluculate_plus_minus(tokens)
+
     return answer
 
 
