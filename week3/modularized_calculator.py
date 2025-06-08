@@ -35,9 +35,23 @@ def read_devision(line,index):
     token = {"type":'DEVISION'}
     return token,index + 1
 
+# 始まりの括弧の読み取り
+def read_parentheses_opening(line,index):
+    token = {"type":"openparentheses"}
+    return token,index + 1
+
+# 終わりの括弧の読み取り
+def read_parentheses_closing(line,index):
+    token = {"type":"closeparentheses"}
+    return token,index + 1
+
 def tokenize(line):
     tokens = []
     index = 0
+
+    # opening_parentheses_count = 0 
+    # closing_parentheses_count = 0
+
     while index < len(line):
         if line[index].isdigit():
             (token, index) = read_number(line, index)
@@ -49,6 +63,12 @@ def tokenize(line):
             (token, index) = read_times(line, index)
         elif line[index] == '/':
             (token, index) = read_devision(line, index)
+        elif line[index] == '(':
+            # opening_parentheses_count += 0 
+            (token, index) = read_parentheses_opening(line, index)
+        elif line[index] == ')':
+            # closing_parentheses_count = opening_parentheses_count
+            (token, index) = read_parentheses_closing(line, index)
         else:
             print('Invalid character found: ' + line[index])
             exit(1)
@@ -102,7 +122,7 @@ def caluculate_times_devisions(tokens):
                 # デバッグ用
                 # print('this function is not times or devision')
                 pass
-            
+
         index += 1
     
     return tokens
@@ -124,6 +144,53 @@ def caluculate_plus_minus(tokens):
         index += 1
     return answer
 
+# 閉じ括弧のインデックスとtokenを受け取ったら一つ前の開き括弧を探しに行き、indexを返す関数
+def search_openparentheses(index,token):
+
+    for searchindex in reversed(range(index)):
+
+        if token[searchindex]["type"] == "openparentheses":
+            # for debug
+            # print("this is open index",searchindex)
+            return searchindex
+        
+    return False
+
+# tokenを受け取ったら括弧の計算をする関数
+def caluculate_parentheses(tokens):
+    index = 0
+    while index < len(tokens):
+
+        # もし閉じかっこを見つけたら、一つ前のopenparenthesesを探しに行く
+        if tokens[index]['type'] == 'closeparentheses':
+            openparentheses_index = search_openparentheses(index,tokens)
+
+            assert openparentheses_index != False
+
+            # 一つ前の開きかっこ〜閉じかっこまでを新たにtokenとしてevaluateに渡す（再帰的に括弧内の計算を行う）
+            # この範囲内の要素をtokenから削除し、type == NUMBER　としてtokenに渡す
+
+            minimum_token = tokens[openparentheses_index+1:index]
+            new_number = evaluate(minimum_token)
+            
+            # 削除する要素数をカウントしtokenから削除
+            cut_index_count = index - openparentheses_index + 1
+            for cut in range(cut_index_count):
+                tokens.pop(openparentheses_index)
+            
+            # 元々開きかっこが存在していた位置に数字を格納
+            tokens.insert(openparentheses_index,{'type': 'NUMBER', 'number': new_number})
+
+            # tokenの長さが変わるので、index調整
+            index = index - cut_index_count + 1
+            
+        index += 1
+    
+    # for debug
+    # print("this is after parentheses",tokens)
+
+    return tokens
+
 
 
 def evaluate(tokens):
@@ -132,6 +199,9 @@ def evaluate(tokens):
 
     # デバッグ
     # print("this is token test",tokens)
+
+    # 先に括弧の計算を行う
+    tokens = caluculate_parentheses(tokens)
 
     # tokensを渡したら掛け算割り算を行う
     tokens = caluculate_times_devisions(tokens)
@@ -161,6 +231,7 @@ def run_test():
     test("1+2")
     test("1.0+2.1-3")
     # for homework2
+    print("==== Test started for homework2! ====")
     test("2")
     test("3+4")
     test("2.0+3")
@@ -183,6 +254,15 @@ def run_test():
     test("5.0/2.0/3")
     test("5*4/2")
     test("5.0*4.0*2.0/2.0/3")
+
+    # for homework3
+    print("==== Test started for homework3! ====")
+    test("(3+4)")
+    test("(3*4)+(2+4)")
+    test("((5-1)/(3-1))*5+(8*9)")
+    test("(6+(9+7))/2")
+    test("(((2.0+3)/2*5)+(8+9))/2.0")
+
     print("==== Test finished! ====\n")
 
 run_test()
