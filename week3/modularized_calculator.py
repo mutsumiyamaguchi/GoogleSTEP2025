@@ -163,7 +163,7 @@ def caluculate_parentheses(tokens):
             assert openparentheses_index != False
 
             # 一つ前の開きかっこ〜閉じかっこまでを新たにtokenとしてevaluateに渡す（再帰的に括弧内の計算を行う）
-            # この範囲内の要素をtokenから削除し、type == NUMBER　としてtokenに渡す
+            # この範囲内の要素を元のtokenから削除し、type == NUMBER　として新たに計算した値を元のtokenに渡す
 
             minimum_token = tokens[openparentheses_index+1:index]
             new_number = evaluate(minimum_token)
