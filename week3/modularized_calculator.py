@@ -56,6 +56,11 @@ def read_int(line,index):
     token = {"type":"int"}
     return token,index + 3
 
+# round読み取り
+def read_round(line,index):
+    token = {"type":"round"}
+    return token,index + 5
+
 def tokenize(line):
     tokens = []
     index = 0
@@ -81,6 +86,9 @@ def tokenize(line):
         elif line[index] == 'i':
             # for int
             (token, index) = read_int(line, index)
+        elif line[index] == 'r':
+            # for int
+            (token, index) = read_round(line, index)
         else:
             print('Invalid character found: ' + line[index])
             exit(1)
@@ -89,7 +97,7 @@ def tokenize(line):
 
 
 # tokensを受け取ったら掛け算割り算を行う関数
-def caluculate_times_devisions(tokens):
+def calculate_times_devisions(tokens):
 
     index = 1
     
@@ -140,7 +148,7 @@ def caluculate_times_devisions(tokens):
     return tokens
 
 # tokensを受け取ったら足し算引き算を行う
-def caluculate_plus_minus(tokens):
+def calculate_plus_minus(tokens):
     answer = 0
     index = 1
     # 足し算引き算の計算をする 
@@ -169,7 +177,7 @@ def search_openparentheses(index,token):
     return False
 
 # tokenを受け取ったら括弧の計算をする関数
-def caluculate_parentheses(tokens):
+def calculate_parentheses(tokens):
     index = 0
     while index < len(tokens):
 
@@ -207,27 +215,29 @@ def caluculate_parentheses(tokens):
 # tokenを受け取ったらabsの計算を行う関数
 # absの後ろをevaluateしてそれがマイナスならプラスに変換する処理を行う
 # TODO コメント書く
-def caluculate_abs(tokens):
+def calculate_abs(tokens):
 
     index = 1
     while index < len(tokens):
         if tokens[index]['type'] == 'abs':
             
+            # absの閉じかっこまでにしたい
             newtokens = tokens[index+1:]
             
             # for debug
             # print(newtokens)
 
-            after_caluculate = evaluate(newtokens)
+            after_calculate = evaluate(newtokens)
             
             # for debug
-            # print(after_caluculate)
+            # print(after_calculate)
 
-            if after_caluculate <= 0:
-                after_caluculate = -(after_caluculate)
+            if after_calculate <= 0:
+                after_calculate = -(after_calculate)
 
             tokens = tokens[:index]
-            tokens.insert(index,{'type': 'NUMBER', 'number': after_caluculate})
+            tokens.insert(index,{'type': 'NUMBER', 'number': after_calculate})
+            print("[DEBUG] this is after abs calc token",tokens)
 
         index += 1
 
@@ -237,31 +247,36 @@ def caluculate_abs(tokens):
     return tokens
 
 # tokenを受け取ったらintの計算を行う関数
-# intの後ろをevaluateしてそれがマイナスならプラスに変換する処理を行う
+# intの後ろをevaluateして切り捨てる計算を行う
 # TODO コメント書く
-def caluculate_int(tokens):
+def calculate_int(tokens):
 
     index = 1
     while index < len(tokens):
         if tokens[index]['type'] == 'int':
             
+            # intの閉じかっこまでにしたい
             newtokens = tokens[index+1:]
             
             # for debug
             # print(newtokens)
 
-            after_caluculate = evaluate(newtokens)
+            after_calculate = evaluate(newtokens)
             
             # for debug
-            # print(after_caluculate)
+            # print(after_calculate)
 
             # for debug
-            print("this is debug for type check",type(after_caluculate))
-            if type(after_caluculate) == "float":
-                after_caluculate = math.floor(after_caluculate)
+            print("this is debug for type check",type(after_calculate))
+
+            if type(after_calculate) == float:
+
+                print("[DEBUG] this type is float!!")
+                after_calculate = math.floor(after_calculate)
 
             tokens = tokens[:index]
-            tokens.insert(index,{'type': 'NUMBER', 'number': after_caluculate})
+            tokens.insert(index,{'type': 'NUMBER', 'number': after_calculate})
+            print("[DEBUG] this is after int calc token",tokens)
 
         index += 1
 
@@ -271,9 +286,41 @@ def caluculate_int(tokens):
     return tokens
 
 
+# tokenを受け取ったらroundの計算を行う関数
+# roundの後ろをevaluateして四捨五入する
+# TODO コメント書く
 
+def calculate_round(tokens):
 
+    index = 1
+    while index < len(tokens):
+        if tokens[index]['type'] == 'round':
+            
+            # roundの閉じかっこまでにしたい
+            newtokens = tokens[index+1:]
+            
+            # for debug
+            # print(newtokens)
 
+            after_calculate = evaluate(newtokens)
+            
+            # for debug
+            # print("this is after calc",after_calculate)
+
+            if type(after_calculate) == float:
+
+                after_calculate = round(after_calculate)
+
+            tokens = tokens[:index]
+            tokens.insert(index,{'type': 'NUMBER', 'number': after_calculate})
+            print("[DEBUG] this is after round calc token",tokens)
+
+        index += 1
+
+    # for debug
+    # print("this is after abs tokens",tokens)
+
+    return tokens
 
 
 def evaluate(tokens):
@@ -281,23 +328,24 @@ def evaluate(tokens):
     tokens.insert(0, {'type': 'PLUS'}) # Insert a dummy '+' token
 
     # デバッグ
-    # print("this is token test",tokens)
+    print("this is token test",tokens)
 
     # 先にabs,int,roundの計算を行う
-    tokens = caluculate_abs(tokens)
-    tokens = caluculate_int(tokens)
+    tokens = calculate_abs(tokens)
+    tokens = calculate_int(tokens)
+    tokens = calculate_round(tokens)
 
     # 次に括弧の計算を行う
-    tokens = caluculate_parentheses(tokens)
+    tokens = calculate_parentheses(tokens)
 
     # tokensを渡したら掛け算割り算を行う
-    tokens = caluculate_times_devisions(tokens)
+    tokens = calculate_times_devisions(tokens)
     
     # デバッグ
     # print("this is token test after times and dexvison",tokens)
 
     # 足し算引き算を行う
-    answer = caluculate_plus_minus(tokens)
+    answer = calculate_plus_minus(tokens)
 
     return answer
 
@@ -351,18 +399,24 @@ def run_test():
     test("(((2.0+3)/2*5)+(8+9))/2.0")
 
     print("==== Test started for homework4 abs! ====")
-
-    print("test for abs")
     test("abs(-3)")
     test("abs(3)")
     test("abs(-3+4)")
 
     print("==== Test started for homework4 int! ====")
-
-    print("test for abs")
     test("int(-3.0)")
     test("int(3.0)")
     test("int(-3.12+4.15)")
+
+    print("==== Test started for homework4 round! ====")
+    test("round(-3.54)")
+    test("round(3.2)")
+    test("round(-3.12+4.15)")
+
+    print("==== Test started for homework4! ====")
+    test("round(-3.54)+int(abs(-3.65))")
+    test("round(3.2+int(5.78)+abs(-3.56+int(5.2)))")
+    test("abs(-3.12+4.15+round(3.89)+abs(int(-4.6)+round(3.0)))")
 
     print("==== Test finished! ====\n")
 
