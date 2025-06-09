@@ -1,4 +1,5 @@
 #! /usr/bin/python3
+import math
 
 def read_number(line, index):
     number = 0
@@ -45,6 +46,16 @@ def read_parentheses_closing(line,index):
     token = {"type":"closeparentheses"}
     return token,index + 1
 
+# abs(の読み取り
+def read_abs(line,index):
+    token = {"type":"abs"}
+    return token,index + 3
+
+# int読み取り
+def read_int(line,index):
+    token = {"type":"int"}
+    return token,index + 3
+
 def tokenize(line):
     tokens = []
     index = 0
@@ -64,6 +75,12 @@ def tokenize(line):
             (token, index) = read_parentheses_opening(line, index)
         elif line[index] == ')':
             (token, index) = read_parentheses_closing(line, index)
+        elif line[index] == 'a':
+            # for abs
+            (token, index) = read_abs(line, index)
+        elif line[index] == 'i':
+            # for int
+            (token, index) = read_int(line, index)
         else:
             print('Invalid character found: ' + line[index])
             exit(1)
@@ -187,6 +204,77 @@ def caluculate_parentheses(tokens):
     return tokens
 
 
+# tokenを受け取ったらabsの計算を行う関数
+# absの後ろをevaluateしてそれがマイナスならプラスに変換する処理を行う
+# TODO コメント書く
+def caluculate_abs(tokens):
+
+    index = 1
+    while index < len(tokens):
+        if tokens[index]['type'] == 'abs':
+            
+            newtokens = tokens[index+1:]
+            
+            # for debug
+            # print(newtokens)
+
+            after_caluculate = evaluate(newtokens)
+            
+            # for debug
+            # print(after_caluculate)
+
+            if after_caluculate <= 0:
+                after_caluculate = -(after_caluculate)
+
+            tokens = tokens[:index]
+            tokens.insert(index,{'type': 'NUMBER', 'number': after_caluculate})
+
+        index += 1
+
+    # for debug
+    # print("this is after abs tokens",tokens)
+
+    return tokens
+
+# tokenを受け取ったらintの計算を行う関数
+# intの後ろをevaluateしてそれがマイナスならプラスに変換する処理を行う
+# TODO コメント書く
+def caluculate_int(tokens):
+
+    index = 1
+    while index < len(tokens):
+        if tokens[index]['type'] == 'int':
+            
+            newtokens = tokens[index+1:]
+            
+            # for debug
+            # print(newtokens)
+
+            after_caluculate = evaluate(newtokens)
+            
+            # for debug
+            # print(after_caluculate)
+
+            # for debug
+            print("this is debug for type check",type(after_caluculate))
+            if type(after_caluculate) == "float":
+                after_caluculate = math.floor(after_caluculate)
+
+            tokens = tokens[:index]
+            tokens.insert(index,{'type': 'NUMBER', 'number': after_caluculate})
+
+        index += 1
+
+    # for debug
+    # print("this is after abs tokens",tokens)
+
+    return tokens
+
+
+
+
+
+
 
 def evaluate(tokens):
     answer = 0
@@ -195,7 +283,11 @@ def evaluate(tokens):
     # デバッグ
     # print("this is token test",tokens)
 
-    # 先に括弧の計算を行う
+    # 先にabs,int,roundの計算を行う
+    tokens = caluculate_abs(tokens)
+    tokens = caluculate_int(tokens)
+
+    # 次に括弧の計算を行う
     tokens = caluculate_parentheses(tokens)
 
     # tokensを渡したら掛け算割り算を行う
@@ -257,6 +349,20 @@ def run_test():
     test("((5-1)/(3-1))*5+(8*9)")
     test("(6+(9+7))/2")
     test("(((2.0+3)/2*5)+(8+9))/2.0")
+
+    print("==== Test started for homework4 abs! ====")
+
+    print("test for abs")
+    test("abs(-3)")
+    test("abs(3)")
+    test("abs(-3+4)")
+
+    print("==== Test started for homework4 int! ====")
+
+    print("test for abs")
+    test("int(-3.0)")
+    test("int(3.0)")
+    test("int(-3.12+4.15)")
 
     print("==== Test finished! ====\n")
 
