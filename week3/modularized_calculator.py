@@ -162,6 +162,7 @@ def calculate_plus_minus(tokens):
                 print('Invalid syntax pulus minus')
                 exit(1)
         index += 1
+
     return answer
 
 # 閉じ括弧のインデックスとtokenを受け取ったら一つ前の開き括弧を探しに行き、indexを返す関数
@@ -195,8 +196,12 @@ def calculate_parentheses(tokens):
             
             # 削除する要素数をカウントしtokenから削除
             cut_index_count = index - openparentheses_index + 1
+
+            # これを用いれば簡単にpopすることができるよ(メンターさん)
+            # del list[start:end]
             for cut in range(cut_index_count):
                 tokens.pop(openparentheses_index)
+
             
             # 元々開きかっこが存在していた位置に数字を格納
             tokens.insert(openparentheses_index,{'type': 'NUMBER', 'number': new_number})
@@ -214,31 +219,29 @@ def calculate_parentheses(tokens):
 
 # tokenを受け取ったらabsの計算を行う関数
 # absの後ろをevaluateしてそれがマイナスならプラスに変換する処理を行う
-# TODO コメント書く
+
 def calculate_abs(tokens):
 
     index = 1
     while index < len(tokens):
         if tokens[index]['type'] == 'abs':
             
-            # absの閉じかっこまでにしたい
-            newtokens = tokens[index+1:]
-            
-            # for debug
-            # print(newtokens)
+             # 先に括弧の計算を行っているので
+            # {"type":"abs"}{'type': 'NUMBER', 'number': n}
+            # という順番に並んでいるはず
 
-            after_calculate = evaluate(newtokens)
-            
-            # for debug
-            # print(after_calculate)
+            abs_number = tokens[index+1]['number']
 
-            if after_calculate <= 0:
-                after_calculate = -(after_calculate)
+            if abs_number < 0:
+                abs_number = abs(abs_number)
 
-            tokens = tokens[:index]
-            tokens.insert(index,{'type': 'NUMBER', 'number': after_calculate})
-            print("[DEBUG] this is after abs calc token",tokens)
+            # {"type":"int"}{'type': 'NUMBER', 'number': n}のまとまりを削除し、
+            # {'type': 'NUMBER', 'number': int_number}を元のindexに代入する
+            # indexの調整を行う
 
+            del tokens[index:index+2]
+            tokens.insert(index,{'type': 'NUMBER', 'number': abs_number})
+            index -= 1   
         index += 1
 
     # for debug
@@ -248,35 +251,30 @@ def calculate_abs(tokens):
 
 # tokenを受け取ったらintの計算を行う関数
 # intの後ろをevaluateして切り捨てる計算を行う
-# TODO コメント書く
+
 def calculate_int(tokens):
 
     index = 1
     while index < len(tokens):
         if tokens[index]['type'] == 'int':
             
-            # intの閉じかっこまでにしたい
-            newtokens = tokens[index+1:]
-            
-            # for debug
-            # print(newtokens)
+            # 先に括弧の計算を行っているので
+            # {"type":"int"}{'type': 'NUMBER', 'number': n}
+            # という順番に並んでいるはず
 
-            after_calculate = evaluate(newtokens)
-            
-            # for debug
-            # print(after_calculate)
+            int_number = tokens[index+1]['number']
 
-            # for debug
-            print("this is debug for type check",type(after_calculate))
+            # もしfloat型ならintに変換する
+            if isinstance(int_number, float):
+                int_number = int(int_number)
 
-            if type(after_calculate) == float:
+            # {"type":"int"}{'type': 'NUMBER', 'number': n}のまとまりを削除し、
+            # {'type': 'NUMBER', 'number': int_number}を元のindexに代入する
+            # indexの調整を行う
 
-                print("[DEBUG] this type is float!!")
-                after_calculate = math.floor(after_calculate)
-
-            tokens = tokens[:index]
-            tokens.insert(index,{'type': 'NUMBER', 'number': after_calculate})
-            print("[DEBUG] this is after int calc token",tokens)
+            del tokens[index:index+2]
+            tokens.insert(index,{'type': 'NUMBER', 'number': int_number})
+            index -= 1
 
         index += 1
 
@@ -288,7 +286,6 @@ def calculate_int(tokens):
 
 # tokenを受け取ったらroundの計算を行う関数
 # roundの後ろをevaluateして四捨五入する
-# TODO コメント書く
 
 def calculate_round(tokens):
 
@@ -296,24 +293,21 @@ def calculate_round(tokens):
     while index < len(tokens):
         if tokens[index]['type'] == 'round':
             
-            # roundの閉じかっこまでにしたい
-            newtokens = tokens[index+1:]
-            
-            # for debug
-            # print(newtokens)
+            # 先に括弧の計算を行っているので
+            # {"type":"round"}{'type': 'NUMBER', 'number': n}
+            # という順番に並んでいるはず
 
-            after_calculate = evaluate(newtokens)
-            
-            # for debug
-            # print("this is after calc",after_calculate)
+            round_number = tokens[index+1]['number']
 
-            if type(after_calculate) == float:
+            round_number = round(round_number)
 
-                after_calculate = round(after_calculate)
+            # {"type":"int"}{'type': 'NUMBER', 'number': n}のまとまりを削除し、
+            # {'type': 'NUMBER', 'number': int_number}を元のindexに代入する
+            # indexの調整を行う
 
-            tokens = tokens[:index]
-            tokens.insert(index,{'type': 'NUMBER', 'number': after_calculate})
-            print("[DEBUG] this is after round calc token",tokens)
+            del tokens[index:index+2]
+            tokens.insert(index,{'type': 'NUMBER', 'number': round_number})
+            index -= 1
 
         index += 1
 
@@ -328,17 +322,19 @@ def evaluate(tokens):
     tokens.insert(0, {'type': 'PLUS'}) # Insert a dummy '+' token
 
     # デバッグ
-    print("this is token test",tokens)
+    # print("this is token test",tokens)
 
-    # 先にabs,int,roundの計算を行う
+    # 先に括弧の計算を行う
+    tokens = calculate_parentheses(tokens)
+    
+    # その後abs,int,roundの計算を行う
+    # この順番にすることでabs,int,roundの後ろは必ず{NUMBER}になる
     tokens = calculate_abs(tokens)
     tokens = calculate_int(tokens)
     tokens = calculate_round(tokens)
 
-    # 次に括弧の計算を行う
-    tokens = calculate_parentheses(tokens)
-
     # tokensを渡したら掛け算割り算を行う
+    # 足し算引き算よりも優先度を上げて計算する
     tokens = calculate_times_devisions(tokens)
     
     # デバッグ
@@ -392,27 +388,32 @@ def run_test():
 
     # for homework3
     print("==== Test started for homework3! ====")
+    test("(3)")
+    test("(-2)")
     test("(3+4)")
     test("(3*4)+(2+4)")
     test("((5-1)/(3-1))*5+(8*9)")
     test("(6+(9+7))/2")
     test("(((2.0+3)/2*5)+(8+9))/2.0")
 
+    #for homework4 abs 
     print("==== Test started for homework4 abs! ====")
     test("abs(-3)")
     test("abs(3)")
     test("abs(-3+4)")
-
+   #for homework4 int
     print("==== Test started for homework4 int! ====")
     test("int(-3.0)")
     test("int(3.0)")
     test("int(-3.12+4.15)")
 
+   #for homework4 round
     print("==== Test started for homework4 round! ====")
     test("round(-3.54)")
     test("round(3.2)")
     test("round(-3.12+4.15)")
 
+   #for homework4 mix
     print("==== Test started for homework4! ====")
     test("round(-3.54)+int(abs(-3.65))")
     test("round(3.2+int(5.78)+abs(-3.56+int(5.2)))")
