@@ -126,12 +126,12 @@ class Wikipedia:
         for id,newpagerank in self.pagerankbuf.items():
 
             if abs(newpagerank - self.pagerank[id])**2 > 0.01:# 収束していない時 
-                self.pagerank = self.pagerankbuf # pagerankをpagerankbufに更新
-                self.pagerankbuf = self.pagerank_initial # pagerankbufを初期化
+                self.pagerank = self.pagerankbuf.copy() # pagerankをpagerankbufに更新
+                self.pagerankbuf = self.pagerank_initial.copy() # pagerankbufを初期化
                 return True
         
         # 収束していた場合
-        self.pagerank = self.pagerankbuf # pagerankをpagerankbufに更新
+        self.pagerank = self.pagerankbuf.copy() # pagerankをpagerankbufに更新
         return False 
         
     # random_surferアルゴリズムを実行する関数
@@ -150,8 +150,10 @@ class Wikipedia:
             else: # linked_listがない時
                 allnode_pagerank = pagerank / self.node_counter # allnodeに100％分配
 
+            # print("data structure chek",self.pagerankbuf)
+
             for all_id,all_rank in self.pagerankbuf.items():#全てのノードにランクを分配
-                    all_rank += allnode_pagerank
+                    self.pagerankbuf[all_id] += allnode_pagerank
     
     # pagerank上位10ページを返す関数
     def topten_pagerank(self):
@@ -174,25 +176,78 @@ class Wikipedia:
         self.add_initial_pagerank()# 全ノードに1を付与
         checkflg = True# 収束チェックフラグを用意
 
+        print("finished add initial pagerank")
+
         while checkflg:# 収束していない間は以下を実行
-            self.conduct_random_surfer()# random_surferを実行  
+            self.conduct_random_surfer()# random_surferを実行
+            # print("this is pagerank :",self.pagerank)  
             checkflg = self.convergence_check()# 収束チェック
+            print(checkflg)
         
         top_pagerank = self.topten_pagerank()#pagerankトップ10を格納
         print(top_pagerank)
         
         
 
+    # for homework3
+    def add_longestpath_data(self):
+
+        self.longestpath = {} #新たなデータ型を用意
+
+        for id,val in self.titles.items(): # {id:path}となるようにする 
+            self.longestpath[id] = []
+            
+        print("add longest path finished!!!")
 
     # Homework #3 (optional):
     # Search the longest path with heuristics.
     # 'start': A title of the start page.
     # 'goal': A title of the goal page.
     def find_longest_path(self, start, goal):
-        #------------------------#
-        # Write your code here!  #
-        #------------------------#
-        pass
+
+        # DFSのキューに同じノードを複数回受け入れるver.のコードで実装
+        # 2回目以降の探索の場合、pathを長い方に更新していくようにする
+
+        # 仮に目的のデータが見つかってもreutnrせず全探索=>計算量およびメモリ使用量がとても多い
+        # 無限ループになってしまうのはどうしたらいいのかわからない
+
+        
+        self.add_longestpath_data()# 新たなデータ型を用意
+
+        # DFSを実装
+        stack = deque() #stack準備
+
+        for id,title in self.titles.items():
+            if title == start:
+                start_id = id #startのtitleに一致するもののid取得
+            elif title == goal:
+                goal_id = id #goalのtitleに一致するもののid取得
+        
+        self.longestpath[start_id] = [start] #startのidとpathを格納
+        
+        stack.append((start_id,[start])) #stackに初期ノード追加
+
+        while len(stack) > 0:
+
+            now_node = stack.pop() #右から一つの要素を取得
+            # pathをアップデートするか検討
+            if self.longestpath[now_node[0]]:
+                pre_path = self.longestpath[now_node[0]]
+                if len(pre_path) < len(now_node[1]): #現在のpathより長ければ更新
+                    self.longestpath[now_node[0]] = now_node[1]
+            
+            linknode_lst = self.links[now_node[0]]
+            print(linknode_lst)
+
+            for nodeid in linknode_lst:
+                node_title = self.titles[nodeid]#接続ノードのidからtitle取得
+                new_path = now_node[1].copy()# 現在の親ノードのpath取得
+                new_path.append(node_title)# pathに接続ノードを追加し現在のノードのpathを構成
+                stack.append((nodeid,new_path))#stack追加
+
+        # 探索終了後
+        print(self.longestpath[goal_id])
+
 
 
     # Helper function for Homework #3:
@@ -218,10 +273,10 @@ if __name__ == "__main__":
         exit(1)
 
     wikipedia = Wikipedia(sys.argv[1], sys.argv[2])
-    # Example
-    wikipedia.find_longest_titles()
-    # Example
-    wikipedia.find_most_linked_pages()
+    # # Example
+    # wikipedia.find_longest_titles()
+    # # Example
+    # wikipedia.find_most_linked_pages()
 
     # Homework #1
 
@@ -234,7 +289,8 @@ if __name__ == "__main__":
     # path_long = wikipedia.find_shortest_path("渋谷", "小野妹子")
     # print(path_long)
 
-    # Homework #2
-    wikipedia.find_most_popular_pages()
+    # # Homework #2
+    # wikipedia.find_most_popular_pages()
     # Homework #3 (optional)
-    wikipedia.find_longest_path("渋谷", "池袋")
+    wikipedia.find_longest_path("A", "E")
+    # wikipedia.find_longest_path("渋谷", "池袋")
