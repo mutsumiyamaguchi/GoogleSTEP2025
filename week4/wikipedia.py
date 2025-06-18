@@ -74,20 +74,21 @@ class Wikipedia:
     # for homwwork1
     # 新しいデータ構造として{id:一つ上のnodeのid}というデータを格納するための準備をする関数
     def add_initilal_data(self):
-        self.pre_id = {}
 
-        for id,val in self.titles.items():
-            self.pre_id[id] = None
+        self.pre_id = {} #データ作成用
+
+        for id,val in self.titles.items(): #全てのデータに対して実行
+            self.pre_id[id] = None #初期値格納
 
     # 現在のノードのidを受け取ったら初期ノードまで逆人探索し、pathを返す関数
     def ret_path(self,node):
-        node = node
-        path = []
+        path = [] #パス作成用リスト
 
         while node != None:
+
             path.insert(0,self.titles[node])#現在参照しているnodeのtitleをpathの先頭に追加
-            previd = self.pre_id[node]
-            node = previd
+            previd = self.pre_id[node] #親ノードの取得
+            node = previd #ノード更新
         return path
 
 
@@ -129,7 +130,6 @@ class Wikipedia:
         return None
 
     # for homework2
-    # デバッグする時には何回計算しているかを確認するといい
 
     # pagerank関連初期化関数
     def add_initial_pagerank(self):
@@ -146,8 +146,8 @@ class Wikipedia:
             self.pagerank_initial[id] = 0 #pagerank_initialの初期化
             self.node_counter += 1 #node数インクリメント
     
-    # 収束していなければTrue
-    # 収束していればFalseを返す
+    # 収束チェック関数
+    # 収束していなければTrue、収束していればFalseを返す
     def convergence_check(self):
         # 全てのノードについて
         for id,newpagerank in self.pagerankbuf.items():
@@ -193,26 +193,27 @@ class Wikipedia:
 
         return title_lst
 
-
-
     # Homework #2: Calculate the page ranks and print the most popular pages.
     def find_most_popular_pages(self):
 
         self.add_initial_pagerank()# 全ノードに1を付与
+
         checkflg = True# 収束チェックフラグを用意
 
         print("finished add initial pagerank")
 
-        self.counter = 0
+        self.counter = 0 #while文実行回数カウンター
+
         while checkflg:# 収束していない間は以下を実行
             
-            self.counter += 1
-            print("counter:",self.counter)
+            self.counter += 1 #カウンターインクリメント
+            print("counter:",self.counter) #デバッグ
 
             self.execute_random_surfer()# random_surferを実行 
             checkflg = self.convergence_check()# 収束チェック
         
         top_pagerank = self.topten_pagerank()#pagerankトップ10を格納
+
         print(top_pagerank)
         
         
@@ -228,6 +229,7 @@ class Wikipedia:
 
         print("add longest path finished!!!")#デバッグ用
 
+
     # 最終ノードを受け取ったらtitleによるpathを構成し、{"length":length,"path":[path]}というデータを返す関数
     def make_dfs_path(self,node):
         
@@ -236,12 +238,13 @@ class Wikipedia:
         path = [] #path作成用リスト
 
         while node!= None:
-            title = self.titles[node]
-            path.insert(0,title)
-            pre_node,path_len = self.longestpath[node]
-            node = pre_node
+            title = self.titles[node] #現在のノードのtitleを取得
+            path.insert(0,title) #path用のリストの先頭に追加
+            pre_node,path_len = self.longestpath[node] #親ノードの取得
+            node = pre_node #探索ノード更新
         
-        res_data["path"] = path
+        res_data["path"] = path #pathを格納
+
         return res_data
 
             
@@ -266,14 +269,6 @@ class Wikipedia:
         
         stack.append((start_id,1)) #stackに初期ノード追加
 
-        # 計算量はO(N!)　pathに入る可能性はN種類の並び方を考えると計算量はO(N!)
-        # DFSのpart2の方針で考えてみる
-
-        # 次に行くlinkednodeをシャッフルすると長いところに辿り着く可能性が増えるかもしれない
-        # 最短経路を先に知っておいて、その経路から一番遠い経路を辿るようにする（局所的に一番遠い方法）
-        # DFSからとりあえず経路を探索して、一つ選ぶ、その両端の中身を一つずつ削ってその経路の中で長いものをとってくる、更新する、これを繰り返してできるだけ長いものを作成する
-        # DFSを複数回回す時にはランダム性を入れてあげた方がながいPATHが見つかるかのうせいがあがる
-
         while len(stack) > 0:
 
             # print("this is stack",stack)
@@ -295,12 +290,13 @@ class Wikipedia:
                 if nodeid not in searched_node:
                     stack.append((nodeid,path_len+1))#stack追加
                     self.longestpath[nodeid] = (now_node,path_len+1) #親、長さをデータに登録
-                    
+    
+               
     # スタートとゴールのtitleを受け取ったら、DFSを複数回繰り返し長いpathを探索する関数
     # TODO 重複を取り除くことができていない
     def find_longest_path(self,start,goal):
 
-        ret_dict = self.find_dfs_path(start,goal,set())
+        ret_dict = self.find_dfs_path(start,goal,set())#DFSを回して返ってきたpathと長さを格納
         path = ret_dict["path"]
         length = ret_dict["length"]
         
@@ -308,20 +304,25 @@ class Wikipedia:
         right = -1 #一番後ろ
         
         while len(path[left+1:right]) >= 2: #現在探索しているリストから先頭、末尾を除いたリストの長さが2より大きければより長いリストの探索
-            print("left,right,length:",left,right,length)
-            short_path = path[left+1:right]
-            searched = set()
-            searched.update(path[0:left+1])
-            searched.update(path[right:])
-            new_dict = self.find_dfs_path(short_path[0],short_path[-1],searched)
-            new_path = new_dict["path"]
-            new_length = new_dict["length"]
-            if len(short_path) < len(new_path):
-                path  = path[0:left+2] + new_path + path[right-1:]
-                length += len(new_path) - len(short_path)
             
-            left += int(length / 15)
-            right -= int(length / 15)
+            print("left,right,length:",left,right,length)#デバッグ用
+
+            short_path = path[left+1:right]#現在探索しているパスの先頭と末尾を削る
+
+            searched = set() #探索済み集合用
+            searched.update(path[0:left+1]) #探索済み集合に確定ノード（前半）追加
+            searched.update(path[right:]) #探索済み集合に確定ノード（後半）追加
+
+            new_dict = self.find_dfs_path(short_path[0],short_path[-1],searched) #新たなpathを探索する
+            new_path = new_dict["path"] #探索結果のpath
+            new_length = new_dict["length"] #探索結果の長さ
+
+            if len(short_path) < len(new_path): #もとのpathよりも長ければ
+                path  = path[0:left+2] + new_path + path[right-1:] #path更新
+                length += len(new_path) - len(short_path) #長さ更新
+            
+            left += int(length / 15) #あまりに探索回数が多すぎると困るので、大体15回ループが回るように左側のインデックス調整
+            right -= int(length / 15) #同様に右側も調整
         
         # self.assert_path(path,start,goal)
 
@@ -375,9 +376,9 @@ if __name__ == "__main__":
     # path = wikipedia.find_longest_path("F", "E")
     # print(path)
 
-    (path,length) = wikipedia.find_longest_path("渋谷", "池袋")
+    (path,length) = wikipedia.find_longest_path("渋谷", "池袋") #結果を取得
 
     with open("./longest_path2.txt", "w", encoding="utf-8") as f:
-        f.write("length:"+str(length)+"\n")
+        f.write("length:"+str(length)+"\n") #ファイルに書き込む
         for title in path:
             f.write(title + "\n")
