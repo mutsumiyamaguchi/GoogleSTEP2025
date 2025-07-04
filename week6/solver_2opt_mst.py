@@ -7,38 +7,61 @@ from collections import defaultdict
 
 
 def distance(city1, city2):
+    # 2地点の距離素を算出
     return math.hypot(city1[0] - city2[0], city1[1] - city2[1])
 
 def prim_mst(cities):
+    # prim法でmstを構成する
     n = len(cities)
-    visited = [False] * n
+    # 各都市がMSTに含まれているかどうかのフラグ
+    visited = [False] * n 
+    # 都市間のMSTのリスト
     mst_edges = defaultdict(list)
+
+    # heapとは値が小さい順に自動で並べてくれるキューのこと
     min_heap = [(0, 0, -1)]  # (cost, current, parent)
 
     while min_heap:
+         # コストが最小のエッジを取り出す
         cost, u, parent = heapq.heappop(min_heap)
         if visited[u]:
+            # すでに訪問済みならスキップ
             continue
         visited[u] = True
         if parent != -1:
+            # 親が存在する場合は辺をMSTに追加
             mst_edges[parent].append(u)
             mst_edges[u].append(parent)
+
+        # 現在の都市から行ける未訪問の都市に関して
         for v in range(n):
             if not visited[v]:
+                # 未訪問の都市との距離をヒープに追加
                 heapq.heappush(min_heap, (distance(cities[u], cities[v]), v, u))
 
     return mst_edges
 
-def dfs_preorder(mst_edges, start=0):
+def dfs_preorder(mst_edges):
+    # MSTを深さ優先探索で探索し、経路を返す関数
+
+    # wisitedハッシュリストを作成
     visited = [False] * len(mst_edges)
+    # パスを格納するリスト
     path = []
+
+    # 再帰で実装
     def dfs(u):
+        # uを探索済みにする
         visited[u] = True
+        # パスに追加
         path.append(u)
+        # 現在のノードから探索することができる全てのノードに関してdfsで経路探索する
         for v in mst_edges[u]:
             if not visited[v]:
                 dfs(v)
-    dfs(start)
+
+    # 再帰的にdfsを実行
+    dfs(0)
     return path
 
 def generate_initial_tour(cities):
@@ -144,7 +167,7 @@ def two_opt(tour, cities):
     improved = True
     # 改善フラグがtrueの間は以下を繰り返す
     while improved:
-        
+
         counter += 1
         print(counter)
         # フラグを更新
@@ -243,8 +266,10 @@ def solve(cities):
 
     # 貪欲法
     greedy = greedy_tour(cities)
+    print("greedy finished")
     # 最小全域木
     mst_based = generate_initial_tour(cities)
+    print("mst_based finished")
 
     # どちらのスコアがいいか判定し、いいスコアの方を採用
     if total_distance(greedy, cities) < total_distance(mst_based, cities):
